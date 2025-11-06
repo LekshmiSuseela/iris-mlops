@@ -30,8 +30,15 @@ jobs:
       - name: DVC pull
         run: |
           pip install dvc[gs]
-          dvc remote modify gcsremote gdrive_use_service_account true || true
-          dvc pull -r gcsremote || true
+          if [ -d ".dvc" ]; then
+            echo "Running DVC from repo root..."
+            dvc pull -r gcsremote || true
+          elif [ -d "mlops/.dvc" ]; then
+            echo "Running DVC from mlops folder..."
+            cd mlops && dvc pull -r gcsremote || true
+          else
+            echo "⚠️ No DVC repository found, skipping."
+          fi
 
       - name: Run pytest
         run: pytest -q
