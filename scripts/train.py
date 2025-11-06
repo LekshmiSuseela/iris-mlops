@@ -13,7 +13,7 @@ mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
 mlflow.set_experiment("iris_classification")
 
 def load_data(gcs_path):
-    # gcs_path example: gs://mlops-474118-artifacts/data/raw/iris.csv
+    # gcs_path example: gs://mlops-474118-artifacts/data/iris.csv
     return pd.read_csv(gcs_path)
 
 def train(data_path):
@@ -36,7 +36,7 @@ def train(data_path):
     return clf, acc
 
 if __name__ == '__main__':
-    data_path = os.getenv('DATA_CSV', f"{GCS_BUCKET}/data/raw/iris.csv")
+    data_path = os.getenv('DATA_CSV', f"{GCS_BUCKET}/data/iris.csv")
     timestamp = datetime.utcnow().strftime('%Y%m%dT%H%M%SZ')
     run_output_dir = f"{GCS_BUCKET}/training_runs/{timestamp}"
     with mlflow.start_run():
