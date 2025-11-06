@@ -7,4 +7,4 @@ def validate_data(path):
     print('Data validation passed for', path)
 
 if __name__ == '__main__':
-    validate_data('gs://mlops-474118-artifacts/data/raw/iris.csv')
+    validate_data('gs://mlops-474118-artifacts/data/iris.csv')
