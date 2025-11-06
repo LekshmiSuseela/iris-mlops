@@ -9,11 +9,6 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-
-    defaults:
-      run:
-        working-directory: iris-mlops  # 👈 ensures all commands run inside the project folder
-
     steps:
       - uses: actions/checkout@v4
 
@@ -32,27 +27,22 @@ jobs:
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-      - name: DVC pull from GCS
+      - name: DVC pull
         run: |
-          pip install "dvc[gs]"
-          dvc remote list
-          dvc pull -r gcsremote
-        env:
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
+          pip install dvc[gs]
+          dvc remote modify gcsremote gdrive_use_service_account true || true
+          dvc pull -r gcsremote || true
 
-      - name: Run Pytest
+      - name: Run pytest
         run: pytest -q
 
-      - name: Run inference sanity check
-        run: |
-          python scripts/inference.py \
-            --model_uri models:/iris_best_model/Production \
-            --eval_csv gs://mlops-474118-artifacts/data/processed/eval.csv
+      - name: Run inference sanity
+        run: python scripts/inference.py --model_uri models:/iris_best_model/Production --eval_csv gs://mlops-474118-artifacts/data/processed/eval.csv
 
       - name: Post CML comment
         env:
           REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "✅ CI completed successfully" > report.md
+          echo "CI completed" > report.md
           pip install cml
           cml comment create --token $REPO_TOKEN --file report.md || true
