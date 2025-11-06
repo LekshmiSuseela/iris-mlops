@@ -1,0 +1,13 @@
+stages:
+  train:
+    cmd: python scripts/train.py
+    deps:
+      - scripts/train.py
+      - data/raw/iris.csv
+    outs:
+      - gs://mlops-474118-artifacts/training_runs
+  inference:
+    cmd: python scripts/inference.py
+    deps:
+      - scripts/inference.py
+    outs: []

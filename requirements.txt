@@ -1,0 +1,10 @@
+dvc[gs]
+feast[gcp]
+mlflow
+scikit-learn
+pandas
+pytest
+joblib
+google-cloud-storage
+google-cloud-bigquery
+cml
