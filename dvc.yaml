@@ -3,7 +3,7 @@ stages:
     cmd: python scripts/train.py
     deps:
       - scripts/train.py
-      - data/raw/iris.csv
+      - data/iris.csv
     outs:
       - gs://mlops-474118-artifacts/training_runs
   inference:
