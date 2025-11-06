@@ -1,7 +1,7 @@
-# Core environment fixes
-pip<24.1
-setuptools<70
-wheel
+# Python packaging core
+pip>=24.0,<25.4
+setuptools>=65.0.0,<70.0.0
+wheel>=0.41.0
 
 # MLOps stack
 feast[gcp]==0.45.0
