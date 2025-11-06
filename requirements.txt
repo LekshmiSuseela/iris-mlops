@@ -3,7 +3,7 @@ feast[gcp]
 mlflow
 scikit-learn
 pandas
-pytest
+pytest>=8.2.0
 joblib
 google-cloud-storage
 google-cloud-bigquery
