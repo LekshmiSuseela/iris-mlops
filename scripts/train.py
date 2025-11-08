@@ -101,6 +101,17 @@ if __name__ == "__main__":
                     debug(f"Run complete. Accuracy={acc:.4f}")
 
         debug("All hyperparameter experiments completed ✅")
+        # After all runs, write best accuracy to metrics.txt for CI
+        try:
+            client = mlflow.tracking.MlflowClient()
+            experiment = client.get_experiment_by_name("iris_classification")
+            runs = client.search_runs([experiment.experiment_id], order_by=["metrics.accuracy DESC"], max_results=1)
+            best_acc = runs[0].data.metrics["accuracy"]
+            with open("metrics.txt", "w") as f:
+                f.write(f"{best_acc:.4f}")
+            debug(f"Best model accuracy written to metrics.txt: {best_acc:.4f}")
+        except Exception as e:
+            debug(f"[WARN] Could not extract accuracy for CI report: {e}")
 
     except Exception as e:
         debug(f"[FATAL] Training pipeline crashed: {e}")
