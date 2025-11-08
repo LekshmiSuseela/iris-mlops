@@ -77,7 +77,7 @@ jobs:
 
       - name: Train model and compute accuracy
         run: |
-          python scripts/train.py > metrics.txt
+          python scripts/train.py
           echo "## ✅ Model Report" > report.md
           echo "" >> report.md
           echo "### 📊 Metrics" >> report.md
@@ -95,7 +95,7 @@ jobs:
 
       - name: 📝 Post training results as comment
         env:
-          REPO_TOKEN: ${{ secrets.GCP_SA_KEY }}
+          REPO_TOKEN: ${{ secrets.HUB_TOKEN }}
         run: |
           cml comment create report.md
 
