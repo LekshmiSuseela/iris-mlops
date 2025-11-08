@@ -92,7 +92,6 @@ jobs:
         env:
           REPO_TOKEN: ${{ secrets.GCP_SA_KEY }}
         run: |
-          echo "## ✅ Model Training Report" > report.md
           cml comment create report.md
 
 
