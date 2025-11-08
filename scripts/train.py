@@ -8,34 +8,41 @@ from sklearn.metrics import accuracy_score
 
 # ---------------- Configuration ----------------
 GCS_BUCKET = "gs://mlops-474118-artifacts"
-MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", "http://<MLFLOW_SERVER_IP>:5000")
+MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", "http://127.0.0.1:5000")
 mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
 mlflow.set_experiment("iris_classification")
 
+# ---------------- RandomForest hyperparameters ----------------
+RF_PARAMS = {
+    "n_estimators": 200,       # Number of trees
+    "max_depth": 5,            # Max depth of each tree
+    "min_samples_split": 4,    # Minimum samples to split a node
+    "min_samples_leaf": 2,     # Minimum samples in a leaf
+    "random_state": 42
+}
 
 # ---------------- Debug Utility ----------------
 def debug(msg: str):
     """Standardized debug print with UTC timestamp."""
     print(f"[{datetime.utcnow().isoformat()}] [DEBUG] {msg}", flush=True)
 
-
-# ---------------- Data Loading ----------------
-def load_data(gcs_path):
+# ---------------- Data Loading in batches ----------------
+def load_data_in_batches(gcs_path, batch_size=20):
+    debug(f"Loading dataset in batches of {batch_size} from: {gcs_path}")
     try:
-        debug(f"Attempting to load dataset from path: {gcs_path}")
-        df = pd.read_csv(gcs_path)
-        debug(f"Dataset loaded successfully with shape {df.shape} and columns: {list(df.columns)}")
+        chunks = pd.read_csv(gcs_path, chunksize=batch_size)
+        df = pd.concat(chunks, ignore_index=True)
+        debug(f"Dataset loaded with shape {df.shape} and columns: {list(df.columns)}")
         return df
     except Exception as e:
-        debug(f"[ERROR] Failed to load data from {gcs_path}: {e}")
+        debug(f"[ERROR] Failed to load data in batches from {gcs_path}: {e}")
         traceback.print_exc()
         sys.exit(1)
-
 
 # ---------------- Training Logic ----------------
 def train(data_path):
     debug(f"Starting training process with data path: {data_path}")
-    df = load_data(data_path)
+    df = load_data_in_batches(data_path, batch_size=20)
 
     # Identify target column
     try:
@@ -60,8 +67,8 @@ def train(data_path):
     debug(f"Data split complete: Train={X_train.shape}, Eval={X_eval.shape}")
 
     # Model training
-    debug("Initializing RandomForestClassifier...")
-    clf = RandomForestClassifier(n_estimators=100, random_state=42)
+    debug(f"Initializing RandomForestClassifier with params: {RF_PARAMS}")
+    clf = RandomForestClassifier(**RF_PARAMS)
     debug("Training model...")
     clf.fit(X_train, y_train)
     debug("Model training complete.")
@@ -72,7 +79,6 @@ def train(data_path):
     debug(f"Evaluation complete. Accuracy={acc:.4f}")
 
     return clf, acc
-
 
 # ---------------- Main ----------------
 if __name__ == '__main__':
@@ -90,7 +96,8 @@ if __name__ == '__main__':
 
             # Log parameters and metrics
             debug("Logging parameters and metrics to MLflow...")
-            mlflow.log_param('model_type', 'RandomForest')
+            for k, v in RF_PARAMS.items():
+                mlflow.log_param(k, v)
             mlflow.log_metric('accuracy', float(acc))
 
             # Save model locally
