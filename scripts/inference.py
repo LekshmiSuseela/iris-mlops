@@ -8,7 +8,7 @@ import pandas as pd
 import mlflow.pyfunc
 
 GCS_BUCKET = "gs://mlops-474118-artifacts"
-
+MLFLOW_TRACKING_URI="http://127.0.0.1:5000"
 
 def debug(msg: str):
     """Unified debug logger."""
@@ -113,8 +113,26 @@ def run_inference(model_uri, eval_csv):
 
 
 if __name__ == "__main__":
+    from mlflow.tracking import MlflowClient
+    client = MlflowClient(tracking_uri="http://<MLFLOW_SERVER_IP>:5000")
+
+    # Replace with your actual experiment ID
+    experiment_id = "1"
+
+    runs = client.search_runs(
+        experiment_ids=[experiment_id],
+        order_by=["metrics.accuracy DESC"],  # Assuming you log accuracy
+        max_results=1)
+    
+    best_run_id = runs[0].info.run_id
+    best_model_uri = f"runs:/{best_run_id}/model"
+    print(f"Using best model from run {best_run_id}")
+
+    # Load model
+    model = mlflow.pyfunc.load_model(best_model_uri)
+
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model_uri", type=str, default="models:/iris_best_model/Production")
+    parser.add_argument("--model_uri", type=str, default=best_model_uri)
     parser.add_argument("--eval_csv", type=str, default=f"{GCS_BUCKET}/data/processed/eval.csv")
     args = parser.parse_args()
 
