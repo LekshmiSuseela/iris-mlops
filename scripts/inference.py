@@ -114,7 +114,7 @@ def run_inference(model_uri, eval_csv):
 
 if __name__ == "__main__":
     from mlflow.tracking import MlflowClient
-    client = MlflowClient(tracking_uri="http://<MLFLOW_SERVER_IP>:5000")
+    client = MlflowClient(tracking_uri=MLFLOW_TRACKING_URI)
 
     # Replace with your actual experiment ID
     experiment_id = "1"
