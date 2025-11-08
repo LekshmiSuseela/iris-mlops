@@ -75,6 +75,15 @@ jobs:
             echo "⚠️ No DVC repository found — skipping DVC pull step."
           fi
 
+      - name: Start MLflow tracking server
+        run: |
+          nohup mlflow server \
+            --backend-store-uri sqlite:///mlflow.db \
+            --default-artifact-root ./mlruns \
+            --host 127.0.0.1 \
+            --port 5000 &
+          sleep 25
+          
       - name: Train model and compute accuracy
         run: |
           python scripts/train.py
