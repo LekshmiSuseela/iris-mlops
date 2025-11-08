@@ -90,7 +90,7 @@ jobs:
 
       - name: 📝 Post training results as comment
         env:
-          REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO_TOKEN: ${{ secrets.GCP_SA_KEY }}
         run: |
           echo "## ✅ Model Training Report" > report.md
           cml comment create report.md
