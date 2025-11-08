@@ -84,15 +84,16 @@ jobs:
           pytest -q || { echo "❌ Tests failed"; exit 1; }
           echo "✅ All tests passed successfully."
 
-      # ---------------------------
-      # Post CI Comment (CML)
-      # ---------------------------
-      - name: Post CML comment
+      - name: 🧰 Set up CML
+        run: |
+          npm install -g @dvcorg/cml
+
+      - name: 📝 Post training results as comment
         env:
           REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "📝 Creating CI summary comment..."
-          echo "CI completed successfully at $(date)" > report.md
-          pip install dvc[gdrive] dvc-cml
-          cml comment create --token $REPO_TOKEN --file report.md || echo "⚠️ Could not post CML comment."
-          echo "✅ CML comment posted."
+          echo "## ✅ Model Training Report" > report.md
+          echo "Accuracy: $(cat metrics.txt)" >> report.md
+          cml comment create report.md
+
+
