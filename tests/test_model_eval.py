@@ -3,11 +3,20 @@ import pandas as pd
 import joblib
 from joblib import load
 from sklearn.metrics import accuracy_score
+import requests
+from google.cloud import storage
+import os
+
+MODEL_BUCKET = "mlops-474118-artifacts"
+MODEL_BLOB = "models/best_model_20251108T121848Z/model/model.pkl"
 
 @pytest.fixture(scope="session")
 def load_data_and_model():
     data = pd.read_csv('gs://mlops-474118-artifacts/data/iris.csv')
-    model = joblib.load('gs://mlops-474118-artifacts/models/best_model_20251108T121848Z/model/model.pkl')
+    client = storage.Client()
+    bucket = client.bucket(MODEL_BUCKET)
+    blob = bucket.blob(MODEL_BLOB)
+    blob.download_to_filename(model)
     X = data.drop(columns=["species"])
     y = data["species"]
     return model, X, y
