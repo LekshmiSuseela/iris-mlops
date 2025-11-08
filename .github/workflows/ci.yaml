@@ -75,6 +75,14 @@ jobs:
             echo "⚠️ No DVC repository found — skipping DVC pull step."
           fi
 
+      - name: Train model and compute accuracy
+        run: |
+          python scripts/train.py > metrics.txt
+          echo "## ✅ Model Report" > report.md
+          echo "" >> report.md
+          echo "### 📊 Metrics" >> report.md
+          cat metrics.txt >> report.md
+
       - name: Run pytest
         run: |
           echo "🧪 Running unit tests with pytest..."
@@ -89,7 +97,6 @@ jobs:
         env:
           REPO_TOKEN: ${{ secrets.GCP_SA_KEY }}
         run: |
-          echo "## ✅ Model Training Report" > report.md
           cml comment create report.md
 
 
