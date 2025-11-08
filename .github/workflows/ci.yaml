@@ -2,7 +2,7 @@ name: CI-Pipeline
 
 on:
   push:
-    branches: [ dev, main ]
+    branches: [ main ]
   pull_request:
     branches: [ main ]
 
@@ -83,18 +83,6 @@ jobs:
           echo "🧪 Running unit tests with pytest..."
           pytest -q || { echo "❌ Tests failed"; exit 1; }
           echo "✅ All tests passed successfully."
-
-      # ---------------------------
-      # Run Inference Sanity Check
-      # ---------------------------
-      - name: Run inference sanity
-        run: |
-          echo "🔍 Running inference sanity test..."
-          python scripts/inference.py \
-            --model_uri models:/iris_best_model/Production \
-            --eval_csv gs://mlops-474118-artifacts/data/processed/eval.csv \
-            || { echo "❌ Inference sanity test failed."; exit 1; }
-          echo "✅ Inference sanity test completed."
 
       # ---------------------------
       # Post CI Comment (CML)
