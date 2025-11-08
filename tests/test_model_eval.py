@@ -4,7 +4,7 @@ from sklearn.metrics import accuracy_score
 
 def test_model_loaded_and_eval():
     # This test expects a Production model registered under name 'iris_best_model'
-    model_uri = 'models:/iris_best_model/Production'
+    model_uri = "gs://mlops-474118-artifacts/models/best_model_20251108T121848Z/model/"
     model = mlflow.pyfunc.load_model(model_uri)
     df = pd.read_csv('gs://mlops-474118-artifacts/data/processed/eval.csv')
     if 'target' in df.columns:
