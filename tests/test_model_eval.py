@@ -1,5 +1,6 @@
 import pytest
 import pandas as pd
+import joblib
 from joblib import load
 from sklearn.metrics import accuracy_score
 
