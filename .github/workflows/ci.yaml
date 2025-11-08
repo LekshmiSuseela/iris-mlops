@@ -93,6 +93,6 @@ jobs:
         run: |
           echo "📝 Creating CI summary comment..."
           echo "CI completed successfully at $(date)" > report.md
-          pip install cml
+          pip install dvc[gdrive] dvc-cml
           cml comment create --token $REPO_TOKEN --file report.md || echo "⚠️ Could not post CML comment."
           echo "✅ CML comment posted."
