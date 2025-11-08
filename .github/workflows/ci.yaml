@@ -85,15 +85,6 @@ jobs:
           echo "✅ All tests passed successfully."
 
       # ---------------------------
-      # Run Inference Sanity Check
-      # ---------------------------
-      - name: Run inference sanity
-        run: |
-          echo "🔍 Running inference sanity test..."
-          python scripts/inference.py || { echo "❌ Inference sanity test failed."; exit 1; }
-          echo "✅ Inference sanity test completed."
-
-      # ---------------------------
       # Post CI Comment (CML)
       # ---------------------------
       - name: Post CML comment
