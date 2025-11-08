@@ -6,19 +6,19 @@ import argparse
 from datetime import datetime
 import pandas as pd
 import mlflow.pyfunc
+import shutil
 
 GCS_BUCKET = "gs://mlops-474118-artifacts"
-MLFLOW_TRACKING_URI="http://127.0.0.1:5000"
+MLFLOW_TRACKING_URI = "http://127.0.0.1:5000"
 
 def debug(msg: str):
     """Unified debug logger."""
     print(f"[DEBUG] {msg}", flush=True)
 
-
+# ---------------- Data Loading ----------------
 def fetch_eval_data(path):
     debug(f"Fetching evaluation data from: {path}")
     try:
-        # Handle GCS path: copy locally for pandas read
         if path.startswith("gs://"):
             local_path = "data/tmp_eval.csv"
             os.makedirs("data", exist_ok=True)
@@ -28,28 +28,22 @@ def fetch_eval_data(path):
             if result != 0:
                 debug(f"[ERROR] gsutil copy failed with exit code {result}")
                 sys.exit(1)
-            debug("File successfully copied from GCS.")
             path = local_path
-        else:
-            debug("Detected local file path.")
-
+            debug("File successfully copied from GCS.")
         df = pd.read_csv(path)
         debug(f"Successfully read eval CSV with shape: {df.shape}")
-        debug(f"Columns found: {list(df.columns)}")
         return df
     except Exception as e:
         debug(f"[ERROR] Failed to fetch or read eval data: {e}")
         traceback.print_exc()
         sys.exit(1)
 
-
+# ---------------- Save predictions ----------------
 def save_preds(df, out_path):
-    debug("Saving predictions to local file 'preds.csv'")
     try:
         df.to_csv("preds.csv", index=False)
-        debug(f"File 'preds.csv' saved successfully. Uploading to: {out_path}")
+        debug(f"File 'preds.csv' saved locally. Uploading to: {out_path}")
         cmd = f"gsutil cp preds.csv {out_path}"
-        debug(f"Running command: {cmd}")
         result = os.system(cmd)
         if result != 0:
             debug(f"[ERROR] Failed to upload preds.csv to {out_path} (exit code {result})")
@@ -60,38 +54,29 @@ def save_preds(df, out_path):
         traceback.print_exc()
         sys.exit(1)
 
-
+# ---------------- Run inference ----------------
 def run_inference(model_uri, eval_csv):
-    debug("Starting inference process...")
-    debug(f"Model URI: {model_uri}")
-    debug(f"Eval CSV: {eval_csv}")
-
+    debug(f"Loading model: {model_uri}")
     try:
-        debug("Loading MLflow model...")
         model = mlflow.pyfunc.load_model(model_uri)
         debug("Model loaded successfully.")
     except Exception as e:
-        debug(f"[ERROR] Failed to load model from MLflow URI: {e}")
+        debug(f"[ERROR] Failed to load model: {e}")
         traceback.print_exc()
         sys.exit(1)
 
     df = fetch_eval_data(eval_csv)
 
-    # Detect feature columns
-    debug("Preparing features for prediction...")
+    # Prepare features
     if 'target' in df.columns:
-        debug("Dropping 'target' column.")
         X = df.drop(columns=['target'])
     elif 'species' in df.columns:
-        debug("Dropping 'species' column.")
         X = df.drop(columns=['species'])
     else:
-        debug("No target/species column found. Using all columns.")
         X = df
 
-    # Run inference
+    # Run predictions
     try:
-        debug("Running model predictions...")
         preds = model.predict(X)
         debug(f"Predictions completed. Sample: {preds[:5]}")
     except Exception as e:
@@ -99,37 +84,52 @@ def run_inference(model_uri, eval_csv):
         traceback.print_exc()
         sys.exit(1)
 
-    # Append predictions
     df['prediction'] = preds
     debug("Predictions column added to DataFrame.")
 
-    # Save to GCS
+    # Save predictions to GCS
     timestamp = datetime.utcnow().strftime('%Y%m%dT%H%M%SZ')
     out_dir = f"{GCS_BUCKET}/inference/{timestamp}"
-    debug(f"Saving output to GCS directory: {out_dir}")
     save_preds(df, f"{out_dir}/preds.csv")
+    debug(f"Inference results saved to {out_dir}")
 
-    print(f"[SUCCESS] Inference completed and saved to {out_dir}", flush=True)
+    # ---------------- Upload best model to GCS ----------------
+    local_model_dir = f"best_model_{timestamp}"
+    debug(f"Saving MLflow model locally to: {local_model_dir}")
+    try:
+        mlflow.pyfunc.save_model(model, path=local_model_dir)
+        gcs_model_path = f"{GCS_BUCKET}/models/best_model_{timestamp}"
+        debug(f"Uploading best model to GCS: {gcs_model_path}")
+        ret = os.system(f"gsutil -m cp -r {local_model_dir} {gcs_model_path}")
+        if ret != 0:
+            debug(f"[ERROR] Failed to upload model to GCS (exit code {ret})")
+        else:
+            debug("Best model successfully uploaded to GCS ✅")
+        # Clean up local saved model folder
+        shutil.rmtree(local_model_dir)
+    except Exception as e:
+        debug(f"[ERROR] Failed to save/upload best model: {e}")
+        traceback.print_exc()
+        sys.exit(1)
 
+    print(f"[SUCCESS] Inference completed and best model uploaded to {gcs_model_path}", flush=True)
 
+# ---------------- Main ----------------
 if __name__ == "__main__":
     from mlflow.tracking import MlflowClient
     client = MlflowClient(tracking_uri=MLFLOW_TRACKING_URI)
 
-    # Replace with your actual experiment ID
     experiment_id = "1"
 
     runs = client.search_runs(
         experiment_ids=[experiment_id],
-        order_by=["metrics.accuracy DESC"],  # Assuming you log accuracy
-        max_results=1)
-    
+        order_by=["metrics.accuracy DESC"],
+        max_results=1
+    )
+
     best_run_id = runs[0].info.run_id
     best_model_uri = f"runs:/{best_run_id}/model"
     print(f"Using best model from run {best_run_id}")
-
-    # Load model
-    model = mlflow.pyfunc.load_model(best_model_uri)
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--model_uri", type=str, default=best_model_uri)
