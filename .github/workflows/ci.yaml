@@ -92,6 +92,6 @@ jobs:
         env:
           REPO_TOKEN: ${{ secrets.GCP_SA_KEY }}
         run: |
-          cml comment create report.md
+          cml comment create >report.md
 
 
