@@ -1,4 +1,5 @@
 name: CI-Pipeline
+
 on:
   push:
     branches: [ dev, main ]
@@ -8,33 +9,102 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
+      # ---------------------------
+      # Checkout Repo
+      # ---------------------------
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - run: echo "✅ Repository checked out successfully."
+
+      # ---------------------------
+      # Python Setup
+      # ---------------------------
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
-      - name: Install deps
+      - run: |
+          echo "🐍 Python 3.10 environment setup complete."
+          python --version
+          pip --version
+
+      # ---------------------------
+      # Dependency Installation
+      # ---------------------------
+      - name: Install dependencies
         run: |
+          echo "📦 Installing dependencies..."
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+          echo "✅ Dependencies installed successfully."
+
+      # ---------------------------
+      # GCP Authentication
+      # ---------------------------
       - name: Authenticate to GCP
         uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
+      - run: echo "🔑 GCP authentication completed successfully."
+
+      # ---------------------------
+      # DVC Pull
+      # ---------------------------
       - name: DVC pull
         run: |
+          echo "🚀 Starting DVC setup..."
           pip install dvc[gs]
-          dvc remote modify gcsremote gdrive_use_service_account true || true
-          dvc pull -r gcsremote || true
+          echo "✅ DVC and gs extension installed."
+
+          if [ -d ".dvc" ]; then
+            echo "📂 Found .dvc in repo root."
+            echo "🔄 Pulling data from remote..."
+            dvc pull -r gcsremote || { echo "❌ DVC pull failed in repo root."; exit 1; }
+            echo "✅ DVC pull completed in repo root."
+          elif [ -d "mlops/.dvc" ]; then
+            echo "📂 Found .dvc inside mlops/ folder."
+            cd mlops
+            echo "🔄 Pulling data from remote (mlops)..."
+            dvc pull -r gcsremote || { echo "❌ DVC pull failed in mlops/"; exit 1; }
+            echo "✅ DVC pull completed in mlops/."
+          else
+            echo "⚠️ No DVC repository found — skipping DVC pull step."
+          fi
+
+      # ---------------------------
+      # Run Pytest
+      # ---------------------------
       - name: Run pytest
-        run: pytest -q
+        run: |
+          echo "🧪 Running unit tests with pytest..."
+          pytest -q || { echo "❌ Tests failed"; exit 1; }
+          echo "✅ All tests passed successfully."
+
+      # ---------------------------
+      # Run Inference Sanity Check
+      # ---------------------------
       - name: Run inference sanity
-        run: python scripts/inference.py --model_uri models:/iris_best_model/Production --eval_csv gs://mlops-474118-artifacts/data/processed/eval.csv
+        run: |
+          echo "🔍 Running inference sanity test..."
+          python scripts/inference.py \
+            --model_uri models:/iris_best_model/Production \
+            --eval_csv gs://mlops-474118-artifacts/data/processed/eval.csv \
+            || { echo "❌ Inference sanity test failed."; exit 1; }
+          echo "✅ Inference sanity test completed."
+
+      # ---------------------------
+      # Post CI Comment (CML)
+      # ---------------------------
       - name: Post CML comment
         env:
           REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "CI completed" > report.md
+          echo "📝 Creating CI summary comment..."
+          echo "CI completed successfully at $(date)" > report.md
           pip install cml
-          cml comment create --token $REPO_TOKEN --file report.md || true
+          cml comment create --token $REPO_TOKEN --file report.md || echo "⚠️ Could not post CML comment."
+          echo "✅ CML comment posted."

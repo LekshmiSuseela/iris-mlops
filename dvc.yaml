@@ -1,13 +1,57 @@
 stages:
   train:
-    cmd: python scripts/train.py
+    cmd: |
+      echo "============================"
+      echo "[DEBUG] Stage: TRAIN STARTED"
+      echo "============================"
+      echo "[INFO] Running on: $(hostname)"
+      echo "[INFO] Current working directory: $(pwd)"
+      echo "[INFO] Listing project structure:"
+      ls -R scripts || true
+      echo "[INFO] Checking if data/iris.csv exists..."
+      if [ ! -f data/iris.csv ]; then
+          echo "[ERROR] data/iris.csv NOT FOUND!"
+          exit 1
+      fi
+      echo "[INFO] Found data/iris.csv ✅"
+      echo "[INFO] Starting training script..."
+      python scripts/train.py
+      TRAIN_EXIT_CODE=$?
+      if [ $TRAIN_EXIT_CODE -ne 0 ]; then
+          echo "[ERROR] Training script failed with exit code $TRAIN_EXIT_CODE"
+          exit $TRAIN_EXIT_CODE
+      fi
+      echo "[DEBUG] Training script completed successfully ✅"
+      echo "[INFO] Checking if model output was generated..."
+      gsutil ls gs://mlops-474118-artifacts/training_runs || echo "[WARN] No output found yet"
+      echo "[DEBUG] Stage: TRAIN COMPLETED ✅"
     deps:
       - scripts/train.py
-      - data/raw/iris.csv
+      - data/iris.csv
     outs:
       - gs://mlops-474118-artifacts/training_runs
+
   inference:
-    cmd: python scripts/inference.py
+    cmd: |
+      echo "=============================="
+      echo "[DEBUG] Stage: INFERENCE STARTED"
+      echo "=============================="
+      echo "[INFO] Running on: $(hostname)"
+      echo "[INFO] Current working directory: $(pwd)"
+      echo "[INFO] Checking if inference script exists..."
+      if [ ! -f scripts/inference.py ]; then
+          echo "[ERROR] scripts/inference.py not found!"
+          exit 1
+      fi
+      echo "[INFO] Starting inference script..."
+      python scripts/inference.py
+      INFER_EXIT_CODE=$?
+      if [ $INFER_EXIT_CODE -ne 0 ]; then
+          echo "[ERROR] Inference script failed with exit code $INFER_EXIT_CODE"
+          exit $INFER_EXIT_CODE
+      fi
+      echo "[DEBUG] Inference completed successfully ✅"
+      echo "[DEBUG] Stage: INFERENCE COMPLETED ✅"
     deps:
       - scripts/inference.py
     outs: []
