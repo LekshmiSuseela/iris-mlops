@@ -5,7 +5,7 @@ from sklearn.metrics import accuracy_score
 
 @pytest.fixture(scope="session")
 def load_data_and_model():
-    data = pd.read_csv'gs://mlops-474118-artifacts/data/iris.csv')
+    data = pd.read_csv('gs://mlops-474118-artifacts/data/iris.csv')
     model = load("model.joblib")
     X = data.drop(columns=["species"])
     y = data["species"]
