@@ -1,9 +1,11 @@
-project: iris
-registry: gs://mlops-474118-artifacts/feast/registry.db
-provider: gcp
-offline_store:
-  type: bigquery
-  dataset: iris_features
+project: irispipeline
+registry: data/registry.db
+provider: local
 online_store:
-  type: sqlite
-  path: data/online_store.db
+    type: sqlite
+    path: data/online_store.db
+entity_key_serialization_version: 3
+auth:
+    type: no_auth
+offline_store:
+    type: file
