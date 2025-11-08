@@ -1,21 +1,27 @@
-import mlflow.pyfunc
+import pytest
 import pandas as pd
+from joblib import load
 from sklearn.metrics import accuracy_score
 
-def test_model_loaded_and_eval():
-    # This test expects a Production model registered under name 'iris_best_model'
-    model_uri = "gs://mlops-474118-artifacts/models/best_model_20251108T121848Z/model/"
-    model = mlflow.pyfunc.load_model(model_uri)
-    df = pd.read_csv('gs://mlops-474118-artifacts/data/processed/eval.csv')
-    if 'target' in df.columns:
-        X = df.drop(columns=['target'])
-        y = df['target']
-    elif 'species' in df.columns:
-        X = df.drop(columns=['species'])
-        y = df['species']
-    else:
-        X = df; y = None
+@pytest.fixture(scope="session")
+def load_data_and_model():
+    data = pd.read_csv("iris.csv")
+    model = load("model.joblib")
+    X = data.drop(columns=["species"])
+    y = data["species"]
+    return model, X, y
+
+def test_model_loads(load_data_and_model):
+    model, X, y = load_data_and_model
+    assert model is not None, "Model failed to load"
+
+def test_model_prediction_shape(load_data_and_model):
+    model, X, y = load_data_and_model
     preds = model.predict(X)
-    if y is not None:
-        acc = accuracy_score(y, preds)
-        assert acc > 0.5, f"Low accuracy: {acc}"
+    assert len(preds) == len(X), "Predictions and data size mismatch"
+
+def test_model_accuracy(load_data_and_model):
+    model, X, y = load_data_and_model
+    preds = model.predict(X)
+    acc = accuracy_score(y, preds)
+    assert acc > 0.7, f"Accuracy too low: {acc:.2f}"
