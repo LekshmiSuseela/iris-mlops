@@ -134,7 +134,7 @@ jobs:
 
       - name: Run Inference
         run: |
-          gsutil -m cp -r gs://mlops-474118-artifacts/models/best_model_20251109T120000Z ./best_model
+          gsutil -m cp -r gs://mlops-474118-artifacts/models/best_model_20251108T121848Z/ ./best_model
           python scripts/inference.py --eval_csv "gs://mlops-474118-artifacts/data/processed/eval.csv" --local_model_dir ./best_model
 
       - name: Run pytest
