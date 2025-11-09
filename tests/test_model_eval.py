@@ -35,11 +35,13 @@ def test_model_loads(load_data_and_model):
 
 def test_model_prediction_shape(load_data_and_model):
     model, X, y = load_data_and_model
+    X = X[["sepal_length", "sepal_width", "petal_length", "petal_width"]]
     preds = model.predict(X)
     assert len(preds) == len(X), "Predictions and data size mismatch"
 
 def test_model_accuracy(load_data_and_model):
     model, X, y = load_data_and_model
+    X = X[["sepal_length", "sepal_width", "petal_length", "petal_width"]]
     preds = model.predict(X)
     acc = accuracy_score(y, preds)
     assert acc > 0.7, f"Accuracy too low: {acc:.2f}"
