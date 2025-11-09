@@ -4,20 +4,19 @@ import mlflow, mlflow.sklearn
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
+from feast import FeatureStore
 
-# ---------------- Config ----------------
 GCS_BUCKET = os.getenv("GCS_BUCKET", "gs://mlops-474118-artifacts")
 MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", "http://127.0.0.1:5000")
 mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
 mlflow.set_experiment("iris_classification")
 
-BATCH_SIZE = 20  # For reading CSV in batches
+BATCH_SIZE = 20  
 
 # Hyperparameter grid
 N_ESTIMATORS_LIST = [5, 100, 150]
 MAX_DEPTH_LIST = [3, 5, 7]
 
-# ---------------- Debug Utility ----------------
 def debug(msg: str):
     print(f"[{datetime.utcnow().isoformat()}] [DEBUG] {msg}", flush=True)
 
