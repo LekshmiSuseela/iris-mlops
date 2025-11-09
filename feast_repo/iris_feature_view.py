@@ -18,7 +18,7 @@ df.to_parquet('gs://mlops-474118-artifacts/data/iris.parquet', index=False)
 
 # Define your data source
 iris_source = FileSource(
-    path = "gs://mlops-474118-artifacts/data/iris.parquet",
+    path = "../data/iris.parquet",
     timestamp_field = "event_timestamp")
 
 # Define your Feature View
