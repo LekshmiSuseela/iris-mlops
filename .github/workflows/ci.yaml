@@ -132,14 +132,6 @@ jobs:
           echo "### 📊 Metrics" >> report.md
           cat metrics.txt >> report.md
 
-      - name: Run Inference
-        run: |
-          mkdir -p ./best_model
-          gsutil -m cp -r gs://mlops-474118-artifacts/models/best_model_20251108T121848Z/* ./best_model/
-          python scripts/inference.py \
-            --eval_csv "gs://mlops-474118-artifacts/data/processed/eval.csv" \
-            --local_model_dir ./best_model
-
       - name: Run pytest
         run: |
           echo "🧪 Running unit tests with pytest..."
