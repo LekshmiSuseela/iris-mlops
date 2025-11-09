@@ -53,9 +53,14 @@ def save_preds(df, out_path):
         sys.exit(1)
 
 # ---------------- Run inference ----------------
-def run_inference(best_run_id, eval_csv):
+def run_inference(best_run_id, eval_csv, local_model_dir=None):
     debug(f"Fetching best model from MLflow run {best_run_id}")
-    best_model_uri = f"runs:/{best_run_id}/model"
+    if local_model_dir:
+        debug(f"Loading model from local folder: {local_model_dir}")
+        best_model_uri = local_model_dir
+    else:
+        debug(f"Fetching best model from MLflow run {best_run_id}")
+        best_model_uri = f"runs:/{best_run_id}/model"
 
     try:
         model = mlflow.pyfunc.load_model(best_model_uri)
@@ -133,7 +138,13 @@ if __name__ == "__main__":
     print(f"Using best model from run {best_run_id}")
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--eval_csv", type=str, default=f"{GCS_BUCKET}/data/processed/eval.csv")
+    parser.add_argument(
+        "--eval_csv", type=str, default=f"{GCS_BUCKET}/data/processed/eval.csv",
+        help="Path to evaluation CSV (local or GCS)")
+    parser.add_argument(
+        "--local_model_dir", type=str, default=None,
+        help="Optional local model folder to use instead of MLflow download"
+    )
     args = parser.parse_args()
 
     try:
