@@ -14,7 +14,7 @@ df = pd.read_csv('gs://mlops-474118-artifacts/data/iris.csv')
 df["event_timestamp"] = pd.to_datetime(df["event_timestamp"], errors="coerce").dt.tz_localize("UTC")
 
 # Convert to Parquet
-df.to_parquet("data/iris.parquet", index=False)
+df.to_parquet("../data/iris.parquet", index=False)
 
 # Define your data source
 iris_source = FileSource(
