@@ -132,6 +132,10 @@ jobs:
           echo "### 📊 Metrics" >> report.md
           cat metrics.txt >> report.md
 
+      - name: Run Inference
+        run: |
+          python inference.py --eval_csv "gs://mlops-474118-artifacts/data/processed/eval.csv"
+
       - name: Run pytest
         run: |
           echo "🧪 Running unit tests with pytest..."
