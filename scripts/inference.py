@@ -58,10 +58,6 @@ def run_inference(best_run_id, eval_csv, local_model_dir=None):
     if local_model_dir:
         debug(f"Loading model from local folder: {local_model_dir}")
         best_model_uri = local_model_dir
-    else:
-        debug(f"Fetching best model from MLflow run {best_run_id}")
-        best_model_uri = f"runs:/{best_run_id}/model"
-
     try:
         model = mlflow.pyfunc.load_model(best_model_uri)
         debug("Model loaded successfully.")
