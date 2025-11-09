@@ -85,6 +85,8 @@ jobs:
           fi
 
       - name: Setup Feast
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
         run: |
           pip install feast[gcp]
           cd feast_repo
