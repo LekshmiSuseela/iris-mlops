@@ -86,7 +86,7 @@ if __name__ == "__main__":
             for max_depth in MAX_DEPTH_LIST:
                 with mlflow.start_run():
                     debug(f"Starting MLflow run for n_estimators={n_estimators}, max_depth={max_depth}")
-                    clf, acc = train_and_evaluate(df, n_estimators, max_depth)
+                    clf, acc = train_and_evaluate(training_df, n_estimators, max_depth)
 
                     # Log params and metrics
                     mlflow.log_param("n_estimators", n_estimators)
