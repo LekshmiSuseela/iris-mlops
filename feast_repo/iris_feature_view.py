@@ -7,7 +7,7 @@ from feast.data_format import FileFormat
 import pandas as pd
 
 # Define your entity (unique identifier)
-iris_entity = Entity(name="iris_id", join_keys=["iris_id"], value_type="INT64")
+iris_entity = Entity(name="iris_id", join_keys=["iris_id"], value_type=ValueType.INT64)
 
 # Read your CSV
 df = pd.read_csv('gs://mlops-474118-artifacts/data/iris.csv')
