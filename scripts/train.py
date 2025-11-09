@@ -39,10 +39,10 @@ def train_and_evaluate(df, n_estimators, max_depth):
     # Identify target column
     if 'target' in df.columns:
         y = df['target']
-        X = df.drop(columns=['target'])
+        X = df.drop(c["target", "event_timestamp", "created_timestamp", "iris_id"], axis=1, errors="ignore")
     elif 'species' in df.columns:
-        y = df['species']
-        X = df.drop(columns=['species'])
+        X = df.drop(["species", "event_timestamp", "created_timestamp", "iris_id"], axis=1, errors="ignore")
+        y = df["species"]
     else:
         raise ValueError("Dataset must have 'target' or 'species' column.")
 
