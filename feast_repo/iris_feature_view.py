@@ -11,6 +11,7 @@ iris_entity = Entity(name="iris_id", join_keys=["iris_id"])
 
 # Read your CSV
 df = pd.read_csv('gs://mlops-474118-artifacts/data/iris.csv')
+df["event_timestamp"] = pd.to_datetime(df["event_timestamp"], errors="coerce").dt.tz_localize("UTC")
 
 # Convert to Parquet
 df.to_parquet('gs://mlops-474118-artifacts/data/iris.parquet', index=False)
@@ -18,8 +19,7 @@ df.to_parquet('gs://mlops-474118-artifacts/data/iris.parquet', index=False)
 # Define your data source
 iris_source = FileSource(
     path = "gs://mlops-474118-artifacts/data/iris.parquet",
-    timestamp_field = "event_timestamp",  # Add this column if not present
-)
+    timestamp_field = "event_timestamp")
 
 # Define your Feature View
 iris_fv = FeatureView(
