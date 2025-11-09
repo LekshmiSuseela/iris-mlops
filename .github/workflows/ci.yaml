@@ -134,7 +134,7 @@ jobs:
 
       - name: Run Inference
         run: |
-          python inference.py --eval_csv "gs://mlops-474118-artifacts/data/processed/eval.csv"
+          python scripts/inference.py
 
       - name: Run pytest
         run: |
