@@ -5,6 +5,7 @@ import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 from feast import FeatureStore
+from datetime import datetime, timezone
 
 GCS_BUCKET = os.getenv("GCS_BUCKET", "gs://mlops-474118-artifacts")
 MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", "http://127.0.0.1:5000")
@@ -67,6 +68,8 @@ if __name__ == "__main__":
 
         # Load data once in batches
         df = load_data_in_batches(data_path, batch_size=BATCH_SIZE)
+        df["event_timestamp"] = pd.to_datetime(df["event_timestamp"], utc=True)
+
         store = FeatureStore(repo_path="feast_repo")
 
         training_df = store.get_historical_features(
