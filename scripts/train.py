@@ -36,12 +36,13 @@ def load_data_in_batches(path, batch_size=BATCH_SIZE):
 
 # ---------------- Train & Evaluate ----------------
 def train_and_evaluate(df, n_estimators, max_depth):
+    FEATURE_COLS = ["sepal_length", "sepal_width", "petal_length", "petal_width"]
     # Identify target column
     if 'target' in df.columns:
         y = df['target']
-        X = df.drop(c["target", "event_timestamp", "created_timestamp", "iris_id"], axis=1, errors="ignore")
+        X = df[FEATURE_COLS]
     elif 'species' in df.columns:
-        X = df.drop(["species", "event_timestamp", "created_timestamp", "iris_id"], axis=1, errors="ignore")
+        X = df[FEATURE_COLS]
         y = df["species"]
     else:
         raise ValueError("Dataset must have 'target' or 'species' column.")
