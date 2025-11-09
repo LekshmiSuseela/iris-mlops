@@ -74,7 +74,7 @@ if __name__ == "__main__":
         store = FeatureStore(repo_path="feast_repo")
 
         training_df = store.get_historical_features(
-            entity_df=df,
+            entity_df=df[["iris_id","event_timestamp", "species"]],
             features=[
                 "iris_features:sepal_length",
                 "iris_features:sepal_width",
