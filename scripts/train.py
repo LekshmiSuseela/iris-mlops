@@ -67,6 +67,15 @@ if __name__ == "__main__":
 
         # Load data once in batches
         df = load_data_in_batches(data_path, batch_size=BATCH_SIZE)
+        store = FeatureStore(repo_path="feast_repo")
+
+        training_df = store.get_historical_features(
+            entity_df=df,
+            features=[
+                "iris_features:sepal_length",
+                "iris_features:sepal_width",
+                "iris_features:petal_length",
+                "iris_features:petal_width",],).to_df()
 
         # Hyperparameter grid search
         for n_estimators in N_ESTIMATORS_LIST:
