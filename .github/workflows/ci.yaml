@@ -92,7 +92,7 @@ jobs:
 
       - name: Decode GCP key
         run: |
-          echo "${{ secrets.GCP_SA_KEY_BASE64 }}" | base64 --decode > /tmp/gcp-key.json
+          echo "${{ secrets.GCP_SA_KEY_B64 }}" | base64 --decode > /tmp/gcp-key.json
           
       - name: Setup Feast
         run: |
